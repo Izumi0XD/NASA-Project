@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather and Travel Time Finder with Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: url(./imf.jpg);
+        }
+
+        .container {
+            max-width: 650px;
+            color: white;
+
+            margin: auto;
+            background-color: rgba(179, 173, 173, 0.177);
+            backdrop-filter: blur(20px);
+            padding: 50px;
+            background-clip: padding-box;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        input,
+        button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: none;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .weather-info {
+            margin-top: 20px;
+            padding: 10px;
+            backdrop-filter: blur(20px);
+            background: linear-gradient(rgba(255, 238, 0, 0.042),rgba(255, 0, 153, 0.042));
+            background-clip: padding-box;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h3 {
+            margin-top: 0;
+        }
+
+        p {
+            font-size: 1.2em;
+        }
+
+        #map-container {
+            height: 400px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>Weather and Travel Time Finder with Map</h2>
+        <p>Enter coordinates or click on the map to get the weather and travel time (28,800 km/h) for two locations.</p>
+
+        <!-- Coordinate Form -->
+        <label for="lat1">Latitude of Location 1 (Origin):</label>
+        <input type="text" id="lat1" placeholder="Enter latitude for Location 1">
+
+        <label for="lon1">Longitude of Location 1 (Origin):</label>
+        <input type="text" id="lon1" placeholder="Enter longitude for Location 1">
+
+        <label for="lat2">Latitude of Location 2 (Target):</label>
+        <input type="text" id="lat2" placeholder="Enter latitude for Location 2">
+
+        <label for="lon2">Longitude of Location 2 (Target):</label>
+        <input type="text" id="lon2" placeholder="Enter longitude for Location 2">
+
+        <button onclick="getWeatherAndDistance()">Get Weather and Distance</button>
+
+        <!-- Map -->
+        <div class="split">
+            <div id="map-container"></div>
+
+            <div id="weather1" class="weather-info"></div>
+            <div id="weather2" class="weather-info"></div>
+
+            <p id="distance-result"></p>
+            <p id="time-result"></p>
+        </div>
+    </div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        const apiKey = '8510d347d3154bc39a255624240410'; // Your WeatherAPI key
+
+        var map = L.map('map-container').setView([30.287, 78.060], 13); // Default location: New York City
+
+        // Add a tile layer to the map
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>',
+            subdomains: ['a', 'b', 'c']
+        }).addTo(map);
+
+        var originMarker, targetMarker;
+
+        // Function to calculate distance using Haversine formula
+        function haversineDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radius of Earth in kilometers
+            const dLat = (lat2 - lat1) * (Math.PI / 180);
+            const dLon = (lon2 - lon1) * (Math.PI / 180);
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c; // Distance in kilometers
+        }
+
+        // Convert time in hours to hours, minutes, and seconds
+        function formatTime(hours) {
+            const h = Math.floor(hours);
+            const m = Math.floor((hours - h) * 60);
+            const s = Math.floor(((hours - h) * 60 - m) * 60);
+            return `${h} hour(s), ${m} minute(s), and ${s} second(s)`;
+        }
+
+        // Function to get weather information from the API
+        async function fetchWeather(latitude, longitude, elementId) {
+            const apiUrl = `http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${latitude},${longitude}`;
+
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+                displayWeather(data, elementId);
+            } catch (error) {
+                document.getElementById(elementId).innerText = `Failed to fetch weather data: ${error.message}`;
+            }
+        }
+
+        // Function to display weather data
+        function displayWeather(data, elementId) {
+            const { location, current } = data;
+            const weatherInfo = `
+                <h3>Weather for ${location.name}, ${location.region}, ${location.country}</h3>
+                <p><strong>Temperature:</strong> ${current.temp_c}°C</p>
+                <p><strong>Condition:</strong> ${current.condition.text}</p>
+                <p><strong>Wind Speed:</strong> ${current.wind_kph} kph</p>
+                <p><strong>Humidity:</strong> ${current.humidity}%</p>
+                <img src="https:${current.condition.icon}" alt="${current.condition.text}">
+            `;
+            document.getElementById(elementId).innerHTML = weatherInfo;
+        }
+
+        // Main function to get weather and distance
+        function getWeatherAndDistance() {
+            const lat1 = parseFloat(document.getElementById('lat1').value);
+            const lon1 = parseFloat(document.getElementById('lon1').value);
+            const lat2 = parseFloat(document.getElementById('lat2').value);
+            const lon2 = parseFloat(document.getElementById('lon2').value);
+
+            if (!lat1 || !lon1 || !lat2 || !lon2) {
+                alert('Please enter all coordinates.');
+                return;
+            }
+
+            // Set markers on the map
+            if (originMarker) map.removeLayer(originMarker);
+            if (targetMarker) map.removeLayer(targetMarker);
+
+            originMarker = L.marker([lat1, lon1]).addTo(map).bindPopup("Location 1 (Origin)").openPopup();
+            targetMarker = L.marker([lat2, lon2]).addTo(map).bindPopup("Location 2 (Target)").openPopup();
+
+            map.setView([lat1, lon1], 10);
+
+            // Fetch weather data for both locations
+            fetchWeather(lat1, lon1, 'weather1');
+            fetchWeather(lat2, lon2, 'weather2');
+
+            // Calculate distance and time
+            let distance = haversineDistance(lat1, lon1, lat2, lon2);
+            document.getElementById('distance-result').textContent = `Distance: ${distance.toFixed(2)} kilometers`;
+
+            const speed = 28800; // Speed in km/h
+            const time = distance / speed; // Time in hours
+            const formattedTime = formatTime(time);
+            document.getElementById('time-result').textContent = `Time to travel at 28,800 km/h: ${formattedTime}`;
+        }
+
+        // Click event to set coordinates on the map
+        map.on('click', function (event) {
+            var lat = event.latlng.lat;
+            var lon = event.latlng.lng;
+
+            // Check if lat1 and lon1 are empty, set them as origin, else set them as target
+            if (!document.getElementById('lat1').value || !document.getElementById('lon1').value) {
+                document.getElementById('lat1').value = lat;
+                document.getElementById('lon1').value = lon;
+            } else {
+                document.getElementById('lat2').value = lat;
+                document.getElementById('lon2').value = lon;
+            }
+        });
+    </script>
+
+</body>
+
+</html>

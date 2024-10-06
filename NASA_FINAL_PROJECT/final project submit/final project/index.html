@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css">
+    <link rel="shortcut icon" href="favicon.webp" type="image/x-icon">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+
+<body>
+    <header>
+        <div class="wrapper">
+
+            <div class="upper">
+                <ol>
+
+                    <li><a href="#" class="fab fa-facebook-f"></a></li>
+                    <li><a href="#" class="fab fa-instagram"></a></li>
+                    <li><a href="#" class="fab fa-linkedin"></a></li>
+
+                </ol>
+
+                <div class="logo">
+                    <img src="infinite.png" alt="404 not found" height="100" width="100">
+                    <h1>pixel pioneer</h1>
+                </div>
+                <button type="submit">sign up</button>
+            </div>
+
+
+            <div class="mainnav">
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#project">Project</a></li>
+                    <li><a href="#ser" target="_self">Services</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </div>
+
+
+            <div class="hero-cont">
+                <div class="text">
+
+                    <h1>Devloping a Web Based Application For Ground Based and Landsat data Compairision</h1>
+
+                    <p>
+                        The Landsat program, managed by NASA and the U.S. Geological Survey (USGS), has been capturing images of the Earth's land surface since 1972. It provides valuable data to support decision-making in land management and environmental policy. The USGS Earth Resources Observation and Science (EROS) Center, established before Landsat 1's launch, serves as the main repository for Landsat imagery. After adopting a free and open data policy in 2008, Landsat data became widely accessible, leading to the creation of new products and applications.
+                    </p>
+                </div>
+                <div class="cover">
+                    <img src="./javier-miranda-VVXk3N0ptFw-unsplash.jpg" alt="" srcset="" height="100" width="100">
+                </div>
+            </div>
+
+        </div>
+    </header>
+
+
+    <section class="container">
+        <div class="hero">
+            <div class="left" id="about">
+                <h1>Landsat Coordination</h1>
+                <p>Go to site and visit recording section as you want to see then play green button of that section.then
+                    you will get landset coordinate</p>
+                <div class="search">
+                    <h2>Get your coordinates form hear</h2><br>
+                    <button><a href="https://earthnow.usgs.gov/observer/"
+                            style="color: white; text-decoration: none;">Get Started</a></button>
+                </div>
+
+            </div>
+            <div class="right">
+                <img src="./5.png" alt="" srcset="">
+            </div>
+        </div>
+
+        <div class="moree">
+        </div>
+
+    </section>
+
+
+
+    <section class="container">
+        <div class="hero1">
+            <div class="right">
+                <h1> Analyzing Data</h1>
+                <p>The Analyzing Data section of the Landsat web app provides users with powerful tools to extract valuable insights from satellite imagery. Users can start with basic image viewing tools, allowing them to zoom in and pan across landscapes, as well as overlay various datasets for a comprehensive understanding of the area.</p>
+            </div>
+            <div class="left">
+                <img src="./searchcrit.png" alt="" srcset="">
+            </div>
+        </div>
+
+        <div class="more">
+            <div>
+                <h2>45</h2>
+                <p>Lorem, ipsum dolor <br>sit amet consectetur adipisicing </p>
+            </div>
+            <div>
+                <h2>210</h2>
+                <p>Lorem, ipsum dolor <br>sit amet consectetur adipisicing </p>
+            </div>
+            <div>
+                <h2>10+</h2>
+                <p>Lorem, ipsum dolor <br>sit amet consectetur adipisicing </p>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <section class="container" id="project">
+
+        <div class="inner-wrapper">
+            <div class="lefts">
+                <h1>Find Location and Calculate Distance :</h1>
+
+                <!-- Coordinate Form -->
+                <form id="coordinate-form">
+                    <label for="latitude">Origin Latitude:</label>
+                    <input type="text" id="latitude" required>
+                    <br>
+                    <label for="longitude">Origin Longitude:</label>
+                    <input type="text" id="longitude" required>
+                    <br>
+                    <label for="target-latitude">Target Latitude:</label>
+                    <input type="text" id="target-latitude" required>
+                    <br>
+                    <label for="target-longitude">Target Longitude:</label>
+                    <input type="text" id="target-longitude" required>
+                    <br>
+                    <button type="submit">Set Locations</button>
+                </form>
+            </div>
+
+            <div id="map-container"></div>
+
+        </div>
+        <div id="location-result">
+            <p id="origin"></p>
+            <p id="target"></p>
+        </div>
+        <p id="distance-result"></p>
+        <p id="time-result"></p>
+
+        </div>
+
+    </section>
+    <section>
+        <iframe src="whether.html" height="200" width="300" title="Iframe Example" id="ser"></iframe>
+    </section>
+
+
+
+
+
+
+
+
+
+
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('map-container').setView([30.287, 78.060], 13); // Default location: New York City
+
+        // Add a tile layer to the map
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>',
+            subdomains: ['a', 'b', 'c']
+        }).addTo(map);
+
+        var originMarker, targetMarker;
+
+
+        // Convert time in hours to hours, minutes, and seconds
+        function formatTime(hours) {
+            const h = Math.floor(hours);
+            const m = Math.floor((hours - h) * 60);
+            const s = Math.floor(((hours - h) * 60 - m) * 60);
+            return `} ${h}:${m}:${s}`;
+        }
+
+        // Function to get the location name
+        async function getLocation(latitude, longitude) {
+            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`;
+            try {
+                let response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                let data = await response.json();
+                return data.display_name || "Location not found.";
+            } catch (error) {
+                console.error("Error fetching location:", error);
+                return "Error occurred.";
+            }
+        }
+
+        // Function to calculate distance between two points
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radius of Earth in kilometers
+            const lat1Rad = lat1 * (Math.PI / 180);
+            const lon1Rad = lon1 * (Math.PI / 180);
+            const lat2Rad = lat2 * (Math.PI / 180);
+            const lon2Rad = lon2 * (Math.PI / 180);
+
+            const dLat = lat2Rad - lat1Rad;
+            const dLon = lon2Rad - lon1Rad;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1Rad) * Math.cos(lat2Rad) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c; // Distance in kilometers
+        }
+
+        // Event listener for form submission
+        document.getElementById('coordinate-form').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            var originLat = parseFloat(document.getElementById('latitude').value);
+            var originLon = parseFloat(document.getElementById('longitude').value);
+            var targetLat = parseFloat(document.getElementById('target-latitude').value);
+            var targetLon = parseFloat(document.getElementById('target-longitude').value);
+
+            // Set origin and target markers
+            if (originMarker) map.removeLayer(originMarker);
+            if (targetMarker) map.removeLayer(targetMarker);
+
+            originMarker = L.marker([originLat, originLon]).addTo(map).bindPopup("Origin").openPopup();
+            targetMarker = L.marker([targetLat, targetLon]).addTo(map).bindPopup("Target").openPopup();
+
+            map.setView([originLat, originLon], 13);
+
+            // Fetch and display location names
+            let originLocation = await getLocation(originLat, originLon);
+            let targetLocation = await getLocation(targetLat, targetLon);
+            document.getElementById('origin').textContent = `📍Origin: ${originLocation}`;
+            document.getElementById('target').textContent = `📍Target: ${targetLocation}`;
+
+            // Calculate and display distance
+            let distance = calculateDistance(originLat, originLon, targetLat, targetLon);
+            document.getElementById('distance-result').textContent = `Distance: ${distance.toFixed(2)} kilometers`;
+
+
+            // Calculate and display travel time
+            const speed = 28800; // Speed in km/h
+            const time = distance / speed; // Time in hours
+            const formattedTime = formatTime(time);
+            document.getElementById('time-result').textContent = `Time to travel at 28,800 km/h: ${formattedTime}`;
+        });
+
+        // Click event to set coordinates on the map
+        map.on('click', function (event) {
+            var lat = event.latlng.lat;
+            var lon = event.latlng.lng;
+
+            // Check if origin or target fields are empty, and fill accordingly
+            if (!document.getElementById('latitude').value || !document.getElementById('longitude').value) {
+                document.getElementById('latitude').value = lat;
+                document.getElementById('longitude').value = lon;
+            } else {
+                document.getElementById('target-latitude').value = lat;
+                document.getElementById('target-longitude').value = lon;
+            }
+        });
+
+
+
+
+        //landsat program which didn't work
+
+
+        //         import java.io.BufferedReader;
+        // import java.io.IOException;
+        // import java.io.InputStreamReader;
+        // import java.net.HttpURLConnection;
+        // import java.net.MalformedURLException;
+        // import java.net.URL;
+
+        // public class LandsatCoordinateFetcher {
+
+        //     public static void fetchLandsatCoordinates() {
+        //         String apiUrl = "https://cmr.earthdata.nasa.gov/search/granules.json?collection_concept_id=C1218928798-LAADS&bounding_box=-105.0,40.0,-104.0,41.0";
+        //         String apiKey = "2R4PLyF5Ym4Qq03ItCZpury1eeIYW37wFXkcmOyl";
+
+        //         try {
+        //             URL url = new URL(apiUrl);
+        //             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        //             conn.setRequestMethod("GET");
+        //             conn.setRequestProperty("2R4PLyF5Ym4Qq03ItCZpury1eeIYW37wFXkcmOyl", "Bearer " + apiKey);
+
+        //             int responseCode = conn.getResponseCode();
+        //             if (responseCode == 200) {
+        //                 BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        //                 String inputLine;
+        //                 StringBuilder content = new StringBuilder();
+        //                 while ((inputLine = in.readLine()) != null) {
+        //                     content.append(inputLine);
+        //                 }
+        //                 in.close();
+        //                 conn.disconnect();
+        //                 System.out.println("Landsat Coordinates Data: " + content.toString());
+        //             } else if (responseCode == 401) {
+        //                 System.out.println("Unauthorized: Check your API key.");
+        //             } else if (responseCode == 403) {
+        //                 System.out.println("Forbidden: Access denied.");
+        //             } else if (responseCode == 404) {
+        //                 System.out.println("Not Found: The requested resource could not be found.");
+        //             } else {
+        //                 System.out.println("Error: " + responseCode + " - " + conn.getResponseMessage());
+        //             }
+        //         } catch (MalformedURLException e) {
+        //             System.out.println("Invalid URL format: " + e.getMessage());
+        //         } catch (IOException e) {
+        //             System.out.println("Network error occurred: " + e.getMessage());
+        //         } catch (RuntimeException e) {
+        //             System.out.println("Runtime Exception: " + e.getMessage());
+        //         } catch (Exception e) {
+        //             System.out.println("An unexpected error occurred: " + e.getMessage());
+        //         }
+        //     }
+
+        //     public static void main(String[] args) {
+        //         fetchLandsatCoordinates();
+        //     }
+        // }
+
+
+        //hear our api key show unauthorased and it will not give coordinates
+    </script>
+</body>
+
+</html>
